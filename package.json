@@ -8,15 +8,10 @@
   "repository": "https://github.com/mswjs/msw-github-bot.git",
   "homepage": "https://github.com/mswjs/msw-github-bot",
   "bugs": "https://github.com/mswjs/msw-github-bot/issues",
-  "keywords": [
-    "probot",
-    "github",
-    "probot-app"
-  ],
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc && (tsc -w --preserveWatchOutput & nodemon)",
-    "dev": "npm run build:watch",
+    "dev": "yarn build:watch",
     "start": "probot run ./lib/index.js",
     "lint": "standard **/*.ts --fix",
     "test": "jest && standard **/*.ts",

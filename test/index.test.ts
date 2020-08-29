@@ -1,33 +1,34 @@
-// You can import your modules
-// import index from '../src/index'
-
+import * as fs from 'fs'
+import * as path from 'path'
 import nock from 'nock'
-// Requiring our app implementation
-import myProbotApp from '../src'
 import { Probot } from 'probot'
-// Requiring our fixtures
 import payload from './fixtures/issues.opened.json'
-const issueCreatedBody = { body: 'Thanks for opening this issue!' }
-const fs = require('fs')
-const path = require('path')
+import bot from '../src'
 
-describe('My Probot app', () => {
+const issueCreatedBody = {
+  body: 'Thanks for opening this issue!',
+}
+
+describe('Mock Service Worker Git', () => {
   let probot: any
-  let mockCert: string
+  let fakeCert: string
 
-  beforeAll((done: Function) => {
-    fs.readFile(path.join(__dirname, 'fixtures/mock-cert.pem'), (err: Error, cert: string) => {
-      if (err) return done(err)
-      mockCert = cert
+  beforeAll((done) => {
+    fs.readFile(path.join(__dirname, 'fixtures/mock-cert.pem'), (err, cert) => {
+      if (err) {
+        return done(err)
+      }
+
+      fakeCert = cert.toString()
       done()
     })
   })
 
   beforeEach(() => {
     nock.disableNetConnect()
-    probot = new Probot({ id: 123, cert: mockCert })
+    probot = new Probot({ id: 123, cert: fakeCert })
     // Load our app into probot
-    probot.load(myProbotApp)
+    probot.load(bot)
   })
 
   test('creates a comment when an issue is opened', async (done) => {
@@ -38,7 +39,7 @@ describe('My Probot app', () => {
 
     // Test that a comment is posted
     nock('https://api.github.com')
-      .post('/repos/hiimbex/testing-things/issues/1/comments', (body: any) => {
+      .post('/repos/hiimbex/testing-things/issues/1/comments', (body) => {
         done(expect(body).toMatchObject(issueCreatedBody))
         return true
       })
@@ -53,12 +54,3 @@ describe('My Probot app', () => {
     nock.enableNetConnect()
   })
 })
-
-// For more information about testing with Jest see:
-// https://facebook.github.io/jest/
-
-// For more information about using TypeScript in your tests, Jest recommends:
-// https://github.com/kulshekhar/ts-jest
-
-// For more information about testing with Nock see:
-// https://github.com/nock/nock
