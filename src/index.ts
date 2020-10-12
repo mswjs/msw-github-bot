@@ -96,4 +96,61 @@ export = (app: Application) => {
       })
     }
   })
+
+  /**
+   * Double check that the issue creator has included a usage example.
+   */
+  app.on('issues.opened', async (context) => {
+    const { issue } = context.payload
+    const { user } = issue
+
+    // Check which template has an issue extended.
+    const hasRelevantLabel = issue.labels.some((label) => {
+      return ['scope:browser', 'scope:server'].includes(
+        label.name.toLowerCase(),
+      )
+    })
+
+    if (!hasRelevantLabel) {
+      return
+    }
+
+    const checklist = [
+      [
+        issue.body.trim() !== '',
+        `Oops, the issue description seems empty. Could you tell us more about what is wrong?`,
+      ],
+    ]
+
+    const comment = context.issue({
+      body: `\
+Hey, @${user.login}! Thank you for reaching out.
+
+There are a few things you can do to get this issue resolved, so I would kindly ask you for cooperation.
+${checklist
+  .filter(([predicate]) => !predicate)
+  .map(([_, message]) => `- ${message}`)
+  .join('\n')}
+
+## Add reproduction example
+
+Please create a reproduction example, if you haven't done that already. Choose any of the following options:
+
+- **Create a [Codesandbox from this template](https://codesandbox.io/s/msw-react-reproduction-xx1c8)**
+- Fork any of the [official usage examples](https://github.com/mswjs/examples)
+- Create a custom public repository on GitHub
+
+Put the link to the example in this issue's description and our team would be much more efficient in solving this problem.
+
+Thank you!
+`,
+    })
+
+    context.github.issues.createComment({
+      issue_number: comment.number,
+      owner: comment.owner,
+      repo: comment.repo,
+      body: comment.body,
+    })
+  })
 }
